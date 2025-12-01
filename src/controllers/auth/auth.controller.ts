@@ -20,17 +20,26 @@ export class AuthController {
 
             if (!user) return res.status(401).json({ message: 'Credenciales incorrectas' });
 
-            const validPassword = await bcrypt.compare(password, user.PasswordHash!);
+            // Verificamos password (si user.PasswordHash es undefined, la comparación falla segura)
+            const validPassword = await bcrypt.compare(password, user.PasswordHash || '');
             if (!validPassword) return res.status(401).json({ message: 'Credenciales incorrectas' });
 
-            // ⚠️ Tipos correctos para JWT
+            // ⚠️ Generación del Token
             const payload = { id: user.UsuarioID, email: user.Email, rol: user.Rol };
-            const secret: Secret = EnvConfig.JWT_SECRET;  // string -> Secret
-            const options: SignOptions = { expiresIn: Number(EnvConfig.JWT_EXPIRES_IN.replace('s','')) || 3600 };
+            const secret: Secret = EnvConfig.JWT_SECRET;
+            // Aseguramos que sea número (default 3600s = 1 hora)
+            const expiresInVal = EnvConfig.JWT_EXPIRES_IN ? Number(EnvConfig.JWT_EXPIRES_IN.replace('s','')) : 3600;
+            const options: SignOptions = { expiresIn: expiresInVal };
 
             const token = jwt.sign(payload, secret, options);
 
-            return res.json({ token });
+            const { PasswordHash, ...userSafe } = user;
+
+            // 2. Enviamos el token Y el usuario
+            return res.json({
+                token,
+                user: userSafe
+            });
 
         } catch (err) {
             console.error('Error en AuthController.login:', err);
