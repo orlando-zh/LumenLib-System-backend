@@ -4,6 +4,7 @@ import cors from 'cors';
 
 import { EnvConfig } from './config/app.config';
 import usersRoutes from './routes/users/users.routes';
+import authRoutes from './routes/auth/auth.routes';
 
 const app = express();
 
@@ -12,6 +13,7 @@ app.use(cors());
 app.use(express.json());
 
 
+app.use('/api/auth', authRoutes);
 
 // Ruta de prueba principal
 app.get('/', (_req, res) => {

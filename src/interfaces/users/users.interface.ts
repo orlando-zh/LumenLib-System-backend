@@ -1,6 +1,9 @@
 export interface Usuario {
-    UsuarioID: number;
+    UsuarioID?: number;
     NombreCompleto: string;
     Email: string;
+    PasswordHash?: string; // nunca se envía al cliente
     Rol: 'Admin' | 'Bibliotecario' | 'Lector';
+    FechaCreacion?: string;
+    FechaActualizacion?: string;
 }

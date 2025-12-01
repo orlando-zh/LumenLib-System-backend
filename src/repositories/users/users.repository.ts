@@ -1,17 +1,65 @@
+import sql from 'mssql';
 import { dbPool } from '@config/db.config';
 import { Usuario } from '@interfaces/users/users.interface';
 
 export class UsersRepository {
+
+    // Obtener todos los usuarios (incluyendo PasswordHash para login)
     async getAll(): Promise<Usuario[]> {
         try {
             const pool = await dbPool;
-            const result = await pool.request().query(
-                'SELECT UsuarioID, NombreCompleto, Email, Rol FROM Usuario'
-            );
+
+            const result = await pool.request().query(`
+                SELECT
+                    UsuarioID,
+                    NombreCompleto,
+                    Email,
+                    PasswordHash,       
+                    Rol,
+                    FechaCreacion,
+                    FechaActualizacion
+                FROM Usuario
+            `);
+
             return result.recordset;
         } catch (err) {
             console.error('Error en UsersRepository.getAll:', err);
-            throw err;
+            throw new Error('Database error while fetching users');
+        }
+    }
+
+    // Crear un nuevo usuario
+    async createUser(user: Usuario): Promise<Usuario> {
+        try {
+            const pool = await dbPool;
+
+            const result = await pool.request()
+                .input('NombreCompleto', sql.NVarChar, user.NombreCompleto)
+                .input('Email', sql.NVarChar, user.Email)
+                .input('PasswordHash', sql.NVarChar, user.PasswordHash) // ya viene hash desde el servicio
+                .input('Rol', sql.NVarChar, user.Rol)
+                .query(`
+                    INSERT INTO Usuario (NombreCompleto, Email, PasswordHash, Rol)
+                        OUTPUT
+                        INSERTED.UsuarioID,
+                    INSERTED.NombreCompleto,
+                    INSERTED.Email,
+                    INSERTED.Rol,
+                    INSERTED.FechaCreacion,
+                    INSERTED.FechaActualizacion
+                    VALUES (@NombreCompleto, @Email, @PasswordHash, @Rol)
+                `);
+
+            return result.recordset[0];
+        } catch (err: any) {
+            console.error('Error en UsersRepository.createUser:', err);
+
+            // Manejo específico para email duplicado (SQL Server: error 2627)
+            if ('number' in err && err.number === 2627) {
+                throw new Error('El email ya está registrado');
+            }
+
+            throw new Error('Error al crear usuario en la base de datos');
         }
     }
 }

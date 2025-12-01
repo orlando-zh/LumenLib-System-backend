@@ -1,18 +1,24 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "CommonJS",
-    "rootDir": "src",
-    "outDir": "dist",
-    "esModuleInterop": true,
+    "target": "es2019",
+    "module": "commonjs",
+    "rootDir": "./src",
+    "outDir": "./dist",
     "strict": true,
-    "baseUrl": "src",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+
+    "baseUrl": "./src",
     "paths": {
+      "@interfaces/*": ["interfaces/*"],
       "@controllers/*": ["controllers/*"],
       "@services/*": ["services/*"],
       "@repositories/*": ["repositories/*"],
-      "@interfaces/*": ["interfaces/*"],
+      "@middlewares/*": ["middlewares/*"],
       "@config/*": ["config/*"]
     }
-  }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
 }
