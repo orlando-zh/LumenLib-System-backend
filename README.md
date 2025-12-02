@@ -1,4 +1,4 @@
-# LumenLib System  -- Frontend
+# LumenLib System  -- Backend
 
 Backend para el sistema de biblioteca digital **LumenLib**.
 
