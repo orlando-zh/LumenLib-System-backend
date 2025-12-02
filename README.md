@@ -39,7 +39,7 @@ Utiliza el archivo .env.template para crear un archivo .env con las variables de
 
 El proyecto se abrirá normalmente en:
 
-    http://localhost:5173/
+    http://localhost:4000/
 
 Si el puerto está ocupado, Vite elegirá otro automáticamente.
 
