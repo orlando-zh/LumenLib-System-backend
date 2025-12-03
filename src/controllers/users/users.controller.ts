@@ -1,46 +1,70 @@
 import { Request, Response } from 'express';
 import { UsersService } from '@services/users/users.service';
 
-const usersService = new UsersService();
-
 export class UsersController {
+    private usersService = new UsersService();
 
-    async getAll(_req: Request, res: Response) {
+    async getAll(req: Request, res: Response) {
         try {
-            const users = await usersService.getAllUsers();
-            res.json(users);
-        } catch (err) {
-            console.error('Error en UsersController.getAll:', err);
-            res.status(500).json({ message: 'Error al obtener los usuarios' });
+            const users = await this.usersService.getAllUsers();
+
+            const safeUsers = users.map(({ PasswordHash, ...u }) => u);
+
+            res.json(safeUsers);
+        } catch (error) {
+            console.error('Error en UsersController.getAll:', error);
+            res.status(500).json({ message: 'Error al obtener usuarios' });
         }
     }
 
     async create(req: Request, res: Response) {
         try {
-            const { NombreCompleto, Email, Password, Rol } = req.body;
+            const newUser = await this.usersService.createUser(req.body);
+            const { PasswordHash, ...safeUser } = newUser;
 
-            // Validaciones mínimas
-            if (!NombreCompleto || !Email || !Password) {
-                return res.status(400).json({
-                    message: 'NombreCompleto, Email y Password son obligatorios'
-                });
+            res.status(201).json(safeUser);
+        } catch (error: any) {
+            console.error('Error en UsersController.create:', error);
+
+            if (error.message.includes('obligatorios')) {
+                return res.status(400).json({ message: error.message });
+            }
+            if (error.message.includes('email')) {
+                return res.status(409).json({ message: error.message });
             }
 
-            const newUser = await usersService.createUser({
-                NombreCompleto,
-                Email,
-                Password,
-                Rol
+            res.status(500).json({ message: 'Error interno al crear usuario' });
+        }
+    }
+
+    async update(req: Request, res: Response) {
+        const { id } = req.params;
+        const updateData = req.body;
+
+        if (!id || isNaN(Number(id))) {
+            return res.status(400).json({ message: 'ID de usuario inválido' });
+        }
+
+        try {
+            const updatedUser = await this.usersService.updateUser(Number(id), updateData);
+            const { PasswordHash, ...safeUser } = updatedUser;
+
+            res.json({
+                message: 'Usuario actualizado correctamente',
+                user: safeUser
             });
 
-            res.status(201).json(newUser);
+        } catch (error: any) {
+            console.error('Error en UsersController.update:', error);
 
-        } catch (err: any) {
-            console.error('Error en UsersController.create:', err);
+            if (error.message === 'Usuario no encontrado') {
+                return res.status(404).json({ message: error.message });
+            }
+            if (error.message.includes('email')) {
+                return res.status(409).json({ message: error.message });
+            }
 
-            res.status(500).json({
-                message: err.message || 'Error al crear el usuario'
-            });
+            res.status(500).json({ message: 'Error interno al actualizar usuario' });
         }
     }
 }

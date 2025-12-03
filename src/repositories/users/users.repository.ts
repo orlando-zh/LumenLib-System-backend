@@ -62,4 +62,52 @@ export class UsersRepository {
             throw new Error('Error al crear usuario en la base de datos');
         }
     }
+
+
+    async getUserById(id: number): Promise<Usuario | undefined> {
+        const pool = await dbPool;
+        const result = await pool.request()
+            .input('Id', sql.Int, id)
+            .query('SELECT * FROM Usuario WHERE UsuarioID = @Id');
+
+        return result.recordset[0];
+    }
+
+    async updateUser(id: number, user: Usuario): Promise<Usuario> {
+        try {
+            const pool = await dbPool;
+
+            // Nota: Se asume que el Service ya preparó el objeto 'user' con los datos correctos
+            // (incluyendo el hash viejo si no se cambió la contraseña)
+            const result = await pool.request()
+                .input('UsuarioID', sql.Int, id)
+                .input('NombreCompleto', sql.NVarChar, user.NombreCompleto)
+                .input('Email', sql.NVarChar, user.Email)
+                .input('PasswordHash', sql.NVarChar, user.PasswordHash)
+                .input('Rol', sql.NVarChar, user.Rol)
+                .query(`
+                    UPDATE Usuario
+                    SET 
+                        NombreCompleto = @NombreCompleto,
+                        Email = @Email,
+                        PasswordHash = @PasswordHash,
+                        Rol = @Rol,
+                        FechaActualizacion = GETDATE()
+                    WHERE UsuarioID = @UsuarioID;
+
+                    -- Devolvemos el usuario actualizado (sin password)
+                    SELECT UsuarioID, NombreCompleto, Email, Rol, FechaCreacion, FechaActualizacion
+                    FROM Usuario WHERE UsuarioID = @UsuarioID;
+                `);
+
+            return result.recordset[0];
+
+        } catch (err: any) {
+            console.error('Error en UsersRepository.updateUser:', err);
+            if ('number' in err && err.number === 2627) {
+                throw new Error('El email ya está en uso por otro usuario');
+            }
+            throw new Error('Error al actualizar usuario');
+        }
+    }
 }

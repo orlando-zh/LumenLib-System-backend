@@ -25,4 +25,30 @@ export class UsersService {
 
         return this.repository.createUser(user);
     }
+
+
+    async updateUser(id: number, changes: Partial<Usuario> & { Password?: string }): Promise<Usuario> {
+
+        const currentUser = await this.repository.getUserById(id);
+
+        if (!currentUser) {
+            throw new Error('Usuario no encontrado');
+        }
+
+        let newPasswordHash = currentUser.PasswordHash;
+
+        if (changes.Password && changes.Password.trim() !== '') {
+            newPasswordHash = await bcrypt.hash(changes.Password, 10);
+        }
+
+        const userToUpdate: Usuario = {
+            ...currentUser,
+            NombreCompleto: changes.NombreCompleto || currentUser.NombreCompleto,
+            Email: changes.Email || currentUser.Email,
+            Rol: changes.Rol || currentUser.Rol,
+            PasswordHash: newPasswordHash
+        };
+
+        return this.repository.updateUser(id, userToUpdate);
+    }
 }
