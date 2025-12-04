@@ -23,10 +23,12 @@ export const EnvConfig: EnvConfigType = {
     DB: {
         HOST: process.env.DB_HOST || 'localhost',
         PORT: process.env.DB_PORT ? Number(process.env.DB_PORT) : 1433,
-        USER: process.env.DB_USER || 'lumen_user',
-        PASSWORD: process.env.DB_PASSWORD || 'Lumen2025',
-        DATABASE: process.env.DB_NAME || 'LumenLib'
+
+        USER: process.env.DB_USER || '',
+        PASSWORD: process.env.DB_PASSWORD || '',
+        DATABASE: process.env.DB_NAME || ''
     },
-    JWT_SECRET: process.env.JWT_SECRET || 'SuperSecretoLumenLib123',
+    JWT_SECRET: process.env.JWT_SECRET || 'secret_key_dev_only',
     JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '3600s'
 };
+

@@ -55,3 +55,26 @@ export function isStaff(req: Request, res: Response, next: NextFunction) {
 
 
 
+export function isAuthenticated(req: Request, res: Response, next: NextFunction) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ message: 'Token faltante.' });
+
+    const token = authHeader.split(' ')[1];
+
+    try {
+        const decoded = jwt.verify(token, EnvConfig.JWT_SECRET) as any;
+
+        // AQUÍ NO FILTRAMOS POR ROL, SOLO VALIDAMOS QUE EXISTA
+
+        // Fix para GET requests
+        if (!req.body) req.body = {};
+
+        req.body.userAuth = decoded;
+        next();
+    } catch (error) {
+        return res.status(401).json({ message: 'Token inválido o expirado' });
+    }
+}
+
+
+

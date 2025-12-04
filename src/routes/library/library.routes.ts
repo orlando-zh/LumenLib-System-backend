@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { isStaff, isAdmin } from '@middlewares/auth/admin.middleware';
+import { isStaff, isAdmin, isAuthenticated } from '@middlewares/auth/admin.middleware';
 
 import { BooksController } from '@controllers/library/books.controller';
 import { LoansController } from '@controllers/library/loans.controller';
@@ -33,6 +33,8 @@ router.post('/books', isStaff, (req, res) => booksCtrl.createBook(req, res));
 router.get('/loans/active', isStaff, (req, res) => loansCtrl.getActiveLoans(req, res));
 // Staff: Registrar préstamo (sp_RegistrarPrestamo)
 router.post('/loans', isStaff, (req, res) => loansCtrl.createLoan(req, res));
+// Lector (Cualquiera logueado): Ver SU propio historial
+router.get('/loans/my-history', isAuthenticated, (req, res) => loansCtrl.getMyLoans(req, res));
 
 
 

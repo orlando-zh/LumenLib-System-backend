@@ -21,32 +21,23 @@ app.get('/', (_req, res) => {
     res.send('Servidor LumenLib corriendo');
 });
 
-// Rutas de usuarios
-app.use('/usuarios', usersRoutes);
+// 1. Autenticación -> /api/auth/login
+app.use('/api/auth', authRoutes);
+
+// 2. Usuarios -> /api/users (CORREGIDO: Antes era /usuarios)
+app.use('/api/users', usersRoutes);
 
 
-
-
-// Registrar las rutas bajo el prefijo /api/library
+// 3. Biblioteca -> /api/library/books, /api/library/loans, etc.
 app.use('/api/library', libraryRoutes);
 
 
 
-
-
-
-
-
-
-
-
-
-// Ruta para verificar configuración
+// INICIO DEL SERVIDOR
 app.get('/config', (_req, res) => {
     res.send("OK");
 });
 
-// Puerto desde variables de entorno
 const PORT = EnvConfig.PORT || 4000;
 
 app.listen(PORT, () => {
