@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 
-
 import { EnvConfig } from './config/app.config';
 import usersRoutes from './routes/users/users.routes';
 import authRoutes from './routes/auth/auth.routes';
@@ -14,39 +13,28 @@ app.use(cors());
 app.use(express.json());
 
 
-app.use('/api/auth', authRoutes);
-
 // Ruta de prueba principal
 app.get('/', (_req, res) => {
     res.send('Servidor LumenLib corriendo');
 });
 
-// Rutas de usuarios
-app.use('/usuarios', usersRoutes);
+// 1. Autenticación -> /api/auth/login
+app.use('/api/auth', authRoutes);
+
+// 2. Usuarios -> /api/users (CORREGIDO: Antes era /usuarios)
+app.use('/api/users', usersRoutes);
 
 
-
-
-// Registrar las rutas bajo el prefijo /api/library
+// 3. Biblioteca -> /api/library/books, /api/library/loans, etc.
 app.use('/api/library', libraryRoutes);
 
 
 
-
-
-
-
-
-
-
-
-
-// Ruta para verificar configuración
+// INICIO DEL SERVIDOR
 app.get('/config', (_req, res) => {
     res.send("OK");
 });
 
-// Puerto desde variables de entorno
 const PORT = EnvConfig.PORT || 4000;
 
 app.listen(PORT, () => {

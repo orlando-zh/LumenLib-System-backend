@@ -29,4 +29,36 @@ export class LoansRepository {
         const result = await pool.request().query('SELECT * FROM VistaPrestamosActivos');
         return result.recordset;
     }
+
+
+    // NUEVO: Obtener historial personal
+    async getMyLoans(usuarioId: number): Promise<any[]> {
+        const pool = await dbPool;
+        const result = await pool.request()
+            .input('UsuarioID', sql.Int, usuarioId)
+            .query(`
+                SELECT 
+                    L.Titulo,
+                    L.ISBN,
+                    P.FechaPrestamo,
+                    P.FechaDevolucion,
+                    -- Columna calculada para el estado
+                    CASE 
+                        WHEN P.FechaDevolucion IS NULL THEN 'Activo'
+                        ELSE 'Devuelto'
+                    END as Estado,
+                    -- Días que lleva prestado (solo si sigue activo)
+                    CASE 
+                        WHEN P.FechaDevolucion IS NULL THEN DATEDIFF(day, P.FechaPrestamo, GETDATE())
+                        ELSE NULL
+                    END as DiasTranscurridos
+                FROM Prestamo P
+                INNER JOIN Libro L ON P.LibroID = L.LibroID
+                WHERE P.UsuarioID = @UsuarioID
+                ORDER BY P.FechaPrestamo DESC
+            `);
+        return result.recordset;
+    }
+
+
 }

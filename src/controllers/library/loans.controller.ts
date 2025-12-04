@@ -24,4 +24,21 @@ export class LoansController {
             res.status(500).json({ message: 'Error interno', error: error.message });
         }
     }
+
+    // Endpoint para que el lector vea sus libros
+    async getMyLoans(req: Request, res: Response) {
+        try {
+            // El middleware 'isAuthenticated' ya decodificó el token aquí:
+            const usuarioId = req.body.userAuth.UsuarioID;
+
+            if (!usuarioId) {
+                return res.status(400).json({ message: 'No se pudo identificar al usuario' });
+            }
+
+            const loans = await this.service.getMyLoans(usuarioId);
+            res.json(loans);
+        } catch (error: any) {
+            res.status(500).json({ message: 'Error al obtener historial', error: error.message });
+        }
+    }
 }

@@ -25,7 +25,7 @@ export class AuthController {
             if (!validPassword) return res.status(401).json({ message: 'Credenciales incorrectas' });
 
             // ⚠️ Generación del Token
-            const payload = { id: user.UsuarioID, email: user.Email, rol: user.Rol };
+            const payload = { UsuarioID: user.UsuarioID, email: user.Email, rol: user.Rol };
             const secret: Secret = EnvConfig.JWT_SECRET;
             // Aseguramos que sea número (default 3600s = 1 hora)
             const expiresInVal = EnvConfig.JWT_EXPIRES_IN ? Number(EnvConfig.JWT_EXPIRES_IN.replace('s','')) : 3600;
