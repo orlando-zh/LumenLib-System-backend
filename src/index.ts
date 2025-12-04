@@ -5,6 +5,7 @@ import cors from 'cors';
 import { EnvConfig } from './config/app.config';
 import usersRoutes from './routes/users/users.routes';
 import authRoutes from './routes/auth/auth.routes';
+import libraryRoutes from './routes/library/library.routes';
 
 const app = express();
 
@@ -24,13 +25,29 @@ app.get('/', (_req, res) => {
 app.use('/usuarios', usersRoutes);
 
 
+
+
+// Registrar las rutas bajo el prefijo /api/library
+app.use('/api/library', libraryRoutes);
+
+
+
+
+
+
+
+
+
+
+
+
 // Ruta para verificar configuración
 app.get('/config', (_req, res) => {
     res.send("OK");
 });
 
 // Puerto desde variables de entorno
-const PORT = EnvConfig.PORT || 3000;
+const PORT = EnvConfig.PORT || 4000;
 
 app.listen(PORT, () => {
     console.log(`🚀 Servidor escuchando en http://localhost:${PORT}`);
