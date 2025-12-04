@@ -17,6 +17,8 @@ export function isAdmin(req: Request, res: Response, next: NextFunction) {
         if (decoded.rol !== 'Admin') {
             return res.status(403).json({ message: 'Acceso denegado. Requiere rol Admin.' });
         }
+
+        if (!req.body) req.body = {};
         req.body.userAuth = decoded;
 
         next();
@@ -41,9 +43,12 @@ export function isStaff(req: Request, res: Response, next: NextFunction) {
             return res.status(403).json({ message: 'Acceso denegado. Requiere ser personal autorizado.' });
         }
 
-        req.body.userAuth = decoded; // Guardamos quien hace la petición
+        if (!req.body) req.body = {};
+
+        req.body.userAuth = decoded;
         next();
     } catch (error) {
+        console.log("ERROR DE TOKEN:", error);
         return res.status(401).json({ message: 'Token inválido' });
     }
 }
