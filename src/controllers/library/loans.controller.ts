@@ -1,44 +1,62 @@
 import { Request, Response } from 'express';
 import { LoansService } from '@services/library/loans.service';
+import { LoanTransactionDTO } from '@interfaces/loans/loan.interface';
 
 export class LoansController {
     private service = new LoansService();
 
-    async createLoan(req: Request, res: Response) {
+    // 1. POST /api/library/loans (Realizar Préstamo)
+    async createLoan(req: Request, res: Response): Promise<void> {
+        const data = req.body as LoanTransactionDTO;
+
+        if (!data.UsuarioID || !data.LibroID) {
+            res.status(400).json({ message: 'Faltan UsuarioID y/o LibroID para registrar el préstamo.' });
+            return;
+        }
+
         try {
-            const { usuarioId, libroId } = req.body;
-            // Llamada al SP que maneja la transacción
-            const message = await this.service.createLoan(usuarioId, libroId);
-            res.status(201).json({ message });
+            await this.service.createLoan(data);
+            res.status(201).json({ message: 'Préstamo registrado con éxito.' });
         } catch (error: any) {
-            // Error 400 si falta stock o datos inválidos
-            res.status(400).json({ message: 'Préstamo fallido', error: error.message });
+            console.error('Error al registrar préstamo:', error.message);
+            const isStockError = error.message.includes('stock');
+
+            res.status(isStockError ? 400 : 500).json({
+                message: isStockError
+                    ? 'Préstamo fallido: No hay stock disponible o el ID del libro es inválido.'
+                    : 'Error interno del servidor al procesar el préstamo.'
+            });
         }
     }
 
-    async getActiveLoans(req: Request, res: Response) {
+    // 2. GET /api/library/loans/active (Supervisión)
+    async getActiveLoans(req: Request, res: Response): Promise<void> {
         try {
             const loans = await this.service.getActiveLoans();
-            res.json(loans);
+            res.status(200).json(loans);
         } catch (error: any) {
-            res.status(500).json({ message: 'Error interno', error: error.message });
+            console.error('Error fetching active loans:', error);
+            res.status(500).json({ message: 'Error al consultar préstamos activos.' });
         }
     }
 
-    // Endpoint para que el lector vea sus libros
-    async getMyLoans(req: Request, res: Response) {
+    // 3. GET /api/library/loans/my-history (Historial Lector)
+    // Se elimina la primera definición duplicada. Mantenemos la lógica de seguridad.
+    async getMyHistory(req: Request, res: Response): Promise<void> {
+        // 🔹 Usar userAuth que puso el middleware
+        const usuarioId = (req as any).body.userAuth?.UsuarioID;
+
+        if (!usuarioId) {
+            res.status(401).json({ message: 'Usuario no autenticado o ID de token faltante.' });
+            return;
+        }
+
         try {
-            // El middleware 'isAuthenticated' ya decodificó el token aquí:
-            const usuarioId = req.body.userAuth.UsuarioID;
-
-            if (!usuarioId) {
-                return res.status(400).json({ message: 'No se pudo identificar al usuario' });
-            }
-
-            const loans = await this.service.getMyLoans(usuarioId);
-            res.json(loans);
+            const loans = await this.service.getMyHistory(usuarioId);
+            res.status(200).json(loans);
         } catch (error: any) {
-            res.status(500).json({ message: 'Error al obtener historial', error: error.message });
+            console.error('Error al obtener historial:', error);
+            res.status(500).json({ message: 'Error al obtener historial personal.' });
         }
     }
 }

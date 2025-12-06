@@ -49,6 +49,7 @@ export interface LibroCatalogo {
     ISBN: string;
     AnioPublicacion: number;
     Stock: number;
+    ImagenURL?: string | null;
     NombreAutor: string;     // Viene del Alias de la Vista
     NombreCategoria: string; // Viene del Alias de la Vista
 }
@@ -65,9 +66,18 @@ export interface TopLector {
     UsuarioID: number;
     NombreCompleto: string;
     Email: string;
-    Rol: string;
     TotalLibrosPrestados: number;
 }
+
+export interface HistorialPersonal {
+    Titulo: string;
+    ISBN: string;
+    FechaPrestamo: Date;
+    FechaDevolucion: Date | null;
+    Estado: 'Activo' | 'Devuelto';
+    DiasTranscurridos: number | null;
+}
+
 
 export interface CategoriaStat {
     NombreCategoria: string;

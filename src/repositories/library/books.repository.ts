@@ -58,6 +58,8 @@ export class BooksRepository {
         const pool = await dbPool;
         let updateFields = [];
 
+        // --- CONSTRUCCIÓN DE LA CLÁUSULA SET ---
+        // (Correcto: Usa !== undefined para saber si el campo vino en el DTO)
         if (data.Titulo !== undefined) updateFields.push("Titulo = @Titulo");
         if (data.ISBN !== undefined) updateFields.push("ISBN = @ISBN");
         if (data.AnioPublicacion !== undefined) updateFields.push("AnioPublicacion = @AnioPublicacion");
@@ -70,20 +72,19 @@ export class BooksRepository {
 
         const request = pool.request().input('LibroID', sql.Int, id);
 
-        // Asignar inputs dinámicamente o todos (SQL ignorará los que no estén en el SET)
-        if (data.Titulo) request.input('Titulo', sql.NVarChar, data.Titulo);
-        if (data.ISBN) request.input('ISBN', sql.NVarChar, data.ISBN);
-        if (data.AnioPublicacion) request.input('AnioPublicacion', sql.Int, data.AnioPublicacion);
-        if (data.Stock) request.input('Stock', sql.Int, data.Stock);
-        if (data.AutorID) request.input('AutorID', sql.Int, data.AutorID);
-        if (data.CategoriaID) request.input('CategoriaID', sql.Int, data.CategoriaID);
+        if (data.Titulo !== undefined) request.input('Titulo', sql.NVarChar, data.Titulo);
+        if (data.ISBN !== undefined) request.input('ISBN', sql.NVarChar, data.ISBN);
+        if (data.AnioPublicacion !== undefined) request.input('AnioPublicacion', sql.Int, data.AnioPublicacion);
+        if (data.Stock !== undefined) request.input('Stock', sql.Int, data.Stock);
+        if (data.AutorID !== undefined) request.input('AutorID', sql.Int, data.AutorID);
+        if (data.CategoriaID !== undefined) request.input('CategoriaID', sql.Int, data.CategoriaID);
         if (data.ImagenURL !== undefined) request.input('ImagenURL', sql.NVarChar, data.ImagenURL);
 
-        // ... query de update igual que antes
+
         const result = await request.query(`
-            UPDATE Libro 
+            UPDATE Libro
             SET ${updateFields.join(', ')}
-            OUTPUT INSERTED.*
+                OUTPUT INSERTED.*
             WHERE LibroID = @LibroID
         `);
 
