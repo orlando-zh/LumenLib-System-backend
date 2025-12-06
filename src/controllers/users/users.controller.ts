@@ -6,7 +6,9 @@ export class UsersController {
 
     async getAll(req: Request, res: Response) {
         try {
-            const users = await this.usersService.getAllUsers();
+            const searchTerm = req.query.nombre as string | undefined;
+
+            const users = await this.usersService.getAllUsers(searchTerm);
 
             const safeUsers = users.map(({ PasswordHash, ...u }) => u);
 
@@ -16,6 +18,31 @@ export class UsersController {
             res.status(500).json({ message: 'Error al obtener usuarios' });
         }
     }
+
+
+
+    async getById(req: Request, res: Response) {
+        const id = parseInt(req.params.id);
+
+        if (isNaN(id)) {
+            return res.status(400).json({ message: 'ID de usuario inválido' });
+        }
+
+        try {
+            const user = await this.usersService.getUserById(id);
+            const { PasswordHash, ...safeUser } = user;
+
+            res.json(safeUser);
+        } catch (error: any) {
+            console.error('Error en UsersController.getById:', error);
+
+            if (error.message === 'Usuario no encontrado') {
+                return res.status(404).json({ message: error.message });
+            }
+            res.status(500).json({ message: 'Error interno al obtener usuario' });
+        }
+    }
+
 
     async create(req: Request, res: Response) {
         try {
@@ -65,6 +92,28 @@ export class UsersController {
             }
 
             res.status(500).json({ message: 'Error interno al actualizar usuario' });
+        }
+    }
+
+
+    async delete(req: Request, res: Response) {
+        const id = parseInt(req.params.id);
+
+        if (isNaN(id)) {
+            return res.status(400).json({ message: 'ID de usuario inválido' });
+        }
+
+        try {
+            await this.usersService.deleteUser(id);
+            // 204 No Content: Respuesta estándar para eliminación exitosa
+            res.status(204).send();
+        } catch (error: any) {
+            console.error('Error en UsersController.delete:', error);
+
+            if (error.message.includes('No se pudo eliminar')) {
+                return res.status(404).json({ message: error.message });
+            }
+            res.status(500).json({ message: 'Error interno al eliminar usuario' });
         }
     }
 }

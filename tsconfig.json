@@ -9,6 +9,11 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
 
+    "types": [
+      "node",
+      "jest"
+    ],
+
     "baseUrl": "./src",
     "paths": {
       "@interfaces/*": ["interfaces/*"],

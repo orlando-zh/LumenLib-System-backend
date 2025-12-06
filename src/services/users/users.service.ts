@@ -1,35 +1,49 @@
+// users.service.ts (COMPLETO con la función DELETE)
 import { UsersRepository } from '@repositories/users/users.repository';
-import { Usuario } from '@interfaces/users/users.interface';
+import { Usuario, CreateUserDTO, UpdateUserDTO } from '@interfaces/users/users.interface';
 import bcrypt from 'bcrypt';
 
 export class UsersService {
     private repository = new UsersRepository();
 
-    async getAllUsers(): Promise<Usuario[]> {
+    // 🚨 Modificado: Usa el nuevo método search del Repository (que limpia el hash)
+    async getAllUsers(searchTerm?: string): Promise<Usuario[]> {
+        if (searchTerm) {
+            return this.repository.searchByName(searchTerm);
+        }
         return this.repository.getAll();
     }
 
-    async createUser(data: Partial<Usuario> & { Password: string }): Promise<Usuario> {
+    // 🚨 NUEVO: Obtener Usuario por ID (Método clave para el Controller)
+    async getUserById(id: number): Promise<Usuario> {
+        const user = await this.repository.getById(id);
+        if (!user) {
+            throw new Error('Usuario no encontrado');
+        }
+        return user;
+    }
+
+    async createUser(data: CreateUserDTO & { Password: string }): Promise<Usuario> {
         if (!data.NombreCompleto || !data.Email || !data.Password) {
             throw new Error("NombreCompleto, Email y Password son obligatorios");
         }
 
         const hashedPassword = await bcrypt.hash(data.Password, 10);
 
-        const user: Usuario = {
+        const userWithHash = {
             NombreCompleto: data.NombreCompleto,
             Email: data.Email,
             PasswordHash: hashedPassword,
             Rol: data.Rol || 'Lector'
         };
 
-        return this.repository.createUser(user);
+        return this.repository.createUser(userWithHash);
     }
 
+    async updateUser(id: number, changes: UpdateUserDTO & { Password?: string }): Promise<Usuario> {
 
-    async updateUser(id: number, changes: Partial<Usuario> & { Password?: string }): Promise<Usuario> {
-
-        const currentUser = await this.repository.getUserById(id);
+        // 🚨 CAMBIO: Usamos getById del Repository
+        const currentUser = await this.repository.getById(id);
 
         if (!currentUser) {
             throw new Error('Usuario no encontrado');
@@ -41,14 +55,26 @@ export class UsersService {
             newPasswordHash = await bcrypt.hash(changes.Password, 10);
         }
 
-        const userToUpdate: Usuario = {
-            ...currentUser,
-            NombreCompleto: changes.NombreCompleto || currentUser.NombreCompleto,
-            Email: changes.Email || currentUser.Email,
-            Rol: changes.Rol || currentUser.Rol,
+        const userToUpdate: UpdateUserDTO & { PasswordHash?: string } = {
+            NombreCompleto: changes.NombreCompleto,
+            Email: changes.Email,
+            Rol: changes.Rol,
             PasswordHash: newPasswordHash
         };
 
-        return this.repository.updateUser(id, userToUpdate);
+        const updatedUser = await this.repository.updateUser(id, userToUpdate);
+
+        if (!updatedUser) {
+            throw new Error('Usuario no encontrado');
+        }
+        return updatedUser;
+    }
+
+    // 🚀 FUNCIÓN AGREGADA: Eliminar Usuario
+    async deleteUser(id: number): Promise<void> {
+        const deleted = await this.repository.deleteUser(id);
+        if (!deleted) {
+            throw new Error(`No se pudo eliminar el usuario con ID ${id}. Puede que no exista o tenga préstamos activos.`);
+        }
     }
 }
