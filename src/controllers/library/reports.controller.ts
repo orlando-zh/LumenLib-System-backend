@@ -38,4 +38,14 @@ export class ReportsController {
             res.status(500).json({ error: error.message });
         }
     }
+
+
+    async getActiveBorrowers(req: Request, res: Response) {
+        try {
+            const data = await this.service.getActiveBorrowers();
+            res.json(data);
+        } catch (error: any) {
+            res.status(500).json({ message: "Error al obtener prestatarios activos", error: error.message });
+        }
+    }
 }

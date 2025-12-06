@@ -1,12 +1,12 @@
-import { Router } from 'express';
-import { isStaff, isAdmin, isAuthenticated } from '@middlewares/auth/admin.middleware';
-import { upload } from '@middlewares/upload.middleware';
+import {Router} from 'express';
+import {isStaff, isAdmin, isAuthenticated} from '@middlewares/auth/admin.middleware';
+import {upload} from '@middlewares/upload.middleware';
 
-import { BooksController } from '@controllers/library/books.controller';
-import { LoansController } from '@controllers/library/loans.controller';
-import { ReportsController } from '@controllers/library/reports.controller';
-import { AuthorsController } from '@controllers/library/authors.controller';
-import { CategoriesController } from '@controllers/library/categories.controller';
+import {BooksController} from '@controllers/library/books.controller';
+import {LoansController} from '@controllers/library/loans.controller';
+import {ReportsController} from '@controllers/library/reports.controller';
+import {AuthorsController} from '@controllers/library/authors.controller';
+import {CategoriesController} from '@controllers/library/categories.controller';
 
 const router = Router();
 
@@ -56,15 +56,6 @@ router.put('/books/:id', isStaff, upload.single('imagen'), (req, res) => booksCt
 // Admin: Eliminar libro
 router.delete('/books/:id', isAdmin, (req, res) => booksCtrl.deleteBook(req, res));
 
-// RUTAS DE PRÉSTAMOS
-// Staff: Ver préstamos activos/morosos (VistaPrestamosActivos)
-router.get('/loans/active', isStaff, (req, res) => loansCtrl.getActiveLoans(req, res));
-// Staff: Registrar préstamo (sp_RegistrarPrestamo)
-router.post('/loans', isStaff, (req, res) => loansCtrl.createLoan(req, res));
-// Lector (Cualquiera logueado): Ver SU propio historial
-router.get('/loans/my-history', isAuthenticated, (req, res) => loansCtrl.getMyLoans(req, res));
-
-
 
 // RUTAS DE REPORTES (DASHBOARD) - Solo Admin
 // Admin: Top Lectores (VistaTopLectores)
@@ -75,5 +66,8 @@ router.get('/reports/categories', isAdmin, (req, res) => reportsCtrl.getCategory
 
 // Admin: Autores Destacados (sp_ObtenerAutoresTop con parámetro ?min=X)
 router.get('/reports/top-authors', isAdmin, (req, res) => reportsCtrl.getTopAuthors(req, res));
+
+router.get('/reports/active-borrowers', isAdmin, (req, res) => reportsCtrl.getActiveBorrowers(req, res));
+
 
 export default router;

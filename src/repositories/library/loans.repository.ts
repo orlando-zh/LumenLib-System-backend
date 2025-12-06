@@ -1,64 +1,66 @@
-//Conecta con sp_RegistrarPrestamo y VistaPrestamosActivos.
+// Conecta con sp_RegistrarPrestamo y VistaPrestamosActivos.
 import sql from 'mssql';
 import { dbPool } from '@config/db.config';
-import { PrestamoActivo } from '@interfaces/library/library.interface';
+// ⬅️ Importamos los tipos necesarios, incluyendo los nuevos
+import { PrestamoActivo, HistorialPersonal } from '@interfaces/library/library.interface';
+import { LoanTransactionDTO } from '@interfaces/loans/loan.interface';
 
 export class LoansRepository {
 
-    // CREAR: Usa el Stored Procedure con Transacción
-    async createLoan(usuarioId: number, libroId: number): Promise<string> {
+    // 1. Ejecutar Préstamo (Transacción) - ACTUALIZADO
+    // El servicio llama a esta función con el DTO (data).
+    async executeLoan(data: LoanTransactionDTO): Promise<void> {
         try {
             const pool = await dbPool;
 
+            // ✅ CORRECCIÓN FINAL: Los nombres de los inputs coinciden con la librería MSSQL
+            // (Sin el símbolo @, ya que MSSQL lo añade internamente).
             await pool.request()
-                .input('UsuarioID', sql.Int, usuarioId)
-                .input('LibroID', sql.Int, libroId)
+                .input('UsuarioID', sql.Int, data.UsuarioID)
+                .input('LibroID', sql.Int, data.LibroID)
                 .execute('sp_RegistrarPrestamo');
 
-            return 'Préstamo realizado con éxito';
         } catch (err: any) {
-            console.error('Error en createLoan:', err);
-            // Capturamos el error si SQL dice "No hay stock"
+            console.error('Error en executeLoan:', err);
             throw new Error(err.message || 'Error al procesar préstamo');
         }
     }
 
-    // LEER: Usa la Vista de Bibliotecario
+    // 2. Consultar Préstamos Activos (VistaPrestamosActivos)
     async getActiveLoans(): Promise<PrestamoActivo[]> {
         const pool = await dbPool;
         const result = await pool.request().query('SELECT * FROM VistaPrestamosActivos');
-        return result.recordset;
+        // ⬅️ Tipado de retorno
+        return result.recordset as PrestamoActivo[];
     }
 
 
-    // NUEVO: Obtener historial personal
-    async getMyLoans(usuarioId: number): Promise<any[]> {
+    // 3. Obtener Historial Personal - ACTUALIZADO y TIPADO
+    async getMyHistory(usuarioId: number): Promise<HistorialPersonal[]> { // ⬅️ CAMBIO DE NOMBRE AQUÍ
         const pool = await dbPool;
         const result = await pool.request()
             .input('UsuarioID', sql.Int, usuarioId)
             .query(`
-                SELECT 
+                SELECT
                     L.Titulo,
                     L.ISBN,
                     P.FechaPrestamo,
                     P.FechaDevolucion,
                     -- Columna calculada para el estado
-                    CASE 
+                    CASE
                         WHEN P.FechaDevolucion IS NULL THEN 'Activo'
                         ELSE 'Devuelto'
-                    END as Estado,
+                        END as Estado,
                     -- Días que lleva prestado (solo si sigue activo)
-                    CASE 
+                    CASE
                         WHEN P.FechaDevolucion IS NULL THEN DATEDIFF(day, P.FechaPrestamo, GETDATE())
                         ELSE NULL
-                    END as DiasTranscurridos
+                        END as DiasTranscurridos
                 FROM Prestamo P
-                INNER JOIN Libro L ON P.LibroID = L.LibroID
+                         INNER JOIN Libro L ON P.LibroID = L.LibroID
                 WHERE P.UsuarioID = @UsuarioID
                 ORDER BY P.FechaPrestamo DESC
             `);
-        return result.recordset;
+        return result.recordset as HistorialPersonal[];
     }
-
-
 }

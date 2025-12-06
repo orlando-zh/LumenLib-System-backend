@@ -1,35 +1,41 @@
 import { LoansRepository } from '@repositories/library/loans.repository';
 import { UsersRepository } from '@repositories/users/users.repository';
+import { LoanTransactionDTO } from '@interfaces/loans/loan.interface';
+import { PrestamoActivo, HistorialPersonal } from '@interfaces/library/library.interface';
 
 export class LoansService {
     private repository = new LoansRepository();
     private usersRepository = new UsersRepository();
 
-    async createLoan(usuarioId: number, libroId: number) {
-        if (!usuarioId || !libroId) {
-            throw new Error('UsuarioID y LibroID son obligatorios');
+    // 1. Ejecutar Préstamo (POST /api/library/loans)
+    // Recibe el DTO, que es el cuerpo de la petición.
+    async createLoan(data: LoanTransactionDTO): Promise<void> {
+        // Validación básica (aunque el controlador ya la hace, la redundancia es buena)
+        if (!data.UsuarioID || !data.LibroID) {
+            throw new Error('UsuarioID y LibroID son obligatorios.');
         }
-        return await this.repository.createLoan(usuarioId, libroId);
+
+        // Ejecuta el stored procedure a través del repositorio.
+        // El repositorio ya tiene la lógica de llamar al SP y manejar las excepciones.
+        await this.repository.executeLoan(data);
     }
 
-    async getActiveLoans() {
+    // 2. Consultar Préstamos Activos (GET /api/library/loans/active)
+    async getActiveLoans(): Promise<PrestamoActivo[]> {
         return await this.repository.getActiveLoans();
     }
 
-    async getMyLoans(usuarioId: number) {
-        // 1. Validación básica de entrada
+    // 3. Consultar Historial Personal (GET /api/library/loans/my-history)
+    async getMyHistory(usuarioId: number): Promise<HistorialPersonal[]> {
+        // 1. Validación de entrada
         if (!usuarioId) {
-            throw new Error("ID de usuario inválido");
+            throw new Error("ID de usuario inválido.");
         }
-
-        // 2. Validación de existencia en BD (Seguridad Extra)
         const user = await this.usersRepository.getById(usuarioId);
 
         if (!user) {
             throw new Error("El usuario asociado al token ya no existe.");
         }
-
-        // 3. Si existe, traemos sus préstamos
-        return await this.repository.getMyLoans(usuarioId);
+        return await this.repository.getMyHistory(usuarioId);
     }
 }
