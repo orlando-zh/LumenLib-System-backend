@@ -23,8 +23,7 @@ export class LoansService {
         }
 
         // 2. Validación de existencia en BD (Seguridad Extra)
-        // Buscamos al usuario para asegurarnos que no ha sido borrado
-        const user = await this.usersRepository.getUserById(usuarioId);
+        const user = await this.usersRepository.getById(usuarioId);
 
         if (!user) {
             throw new Error("El usuario asociado al token ya no existe.");

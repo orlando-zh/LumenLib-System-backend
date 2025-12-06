@@ -37,3 +37,8 @@ coverage
 
 #constructor hash
 bcrypt.js
+generar_hash.js
+
+
+uploads/*
+!uploads/.gitkeep

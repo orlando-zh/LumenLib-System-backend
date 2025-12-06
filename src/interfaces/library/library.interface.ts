@@ -9,6 +9,7 @@ export interface Libro {
     Stock: number;
     AutorID: number;
     CategoriaID: number;
+    ImagenURL?: string | null;
 }
 
 export interface Autor {
@@ -16,6 +17,29 @@ export interface Autor {
     Nombre: string;
     Nacionalidad?: string;
 }
+
+export interface Categoria {
+    CategoriaID?: number; // Opcional para Create, requerido para Update
+    NombreCategoria: string;
+}
+
+
+// ====================================================
+// 2. DATA TRANSFER OBJECTS (DTOs)
+// ====================================================
+// Usados para tipar el cuerpo (body) de las peticiones POST y PUT.
+
+// --- DTOs para Libros ---
+export type CreateBookDTO = Omit<Libro, 'LibroID'>; // Excluye LibroID
+export type UpdateBookDTO = Partial<CreateBookDTO>; // Permite actualizar cualquier campo, excluyendo el ID
+
+// --- DTOs para Autores ---
+export type CreateAuthorDTO = Omit<Autor, 'AutorID'>; // Excluye AutorID
+export type UpdateAuthorDTO = Partial<CreateAuthorDTO>; // Permite actualizar Nombre o Nacionalidad
+
+// --- DTOs para Categorías ---
+export type CreateCategoryDTO = Omit<Categoria, 'CategoriaID'>; // Excluye CategoriaID
+export type UpdateCategoryDTO = Partial<CreateCategoryDTO>; // Permite actualizar NombreCategoria
 
 
 // Interfaces de VISTAS (Lectura optimizada)
