@@ -8,15 +8,10 @@ export class LoansService {
     private usersRepository = new UsersRepository();
 
     // 1. Ejecutar Préstamo (POST /api/library/loans)
-    // Recibe el DTO, que es el cuerpo de la petición.
     async createLoan(data: LoanTransactionDTO): Promise<void> {
-        // Validación básica (aunque el controlador ya la hace, la redundancia es buena)
         if (!data.UsuarioID || !data.LibroID) {
             throw new Error('UsuarioID y LibroID son obligatorios.');
         }
-
-        // Ejecuta el stored procedure a través del repositorio.
-        // El repositorio ya tiene la lógica de llamar al SP y manejar las excepciones.
         await this.repository.executeLoan(data);
     }
 
@@ -37,5 +32,26 @@ export class LoansService {
             throw new Error("El usuario asociado al token ya no existe.");
         }
         return await this.repository.getMyHistory(usuarioId);
+    }
+
+
+
+    async returnLoanByPrestamoId(prestamoId: number): Promise<void> {
+        if (!prestamoId) {
+            throw new Error("PrestamoID inválido.");
+        }
+
+        await this.repository.returnByLoanId(prestamoId);
+    }
+
+
+// 5. Devolver por UsuarioID + LibroID
+
+    async returnLoanByUsuarioLibro(usuarioId: number, libroId: number): Promise<void> {
+        if (!usuarioId || !libroId) {
+            throw new Error("UsuarioID y LibroID son obligatorios.");
+        }
+
+        await this.repository.returnByUserAndBook(usuarioId, libroId);
     }
 }
