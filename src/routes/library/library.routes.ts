@@ -59,15 +59,15 @@ router.delete('/books/:id', isAdmin, (req, res) => booksCtrl.deleteBook(req, res
 
 // RUTAS DE REPORTES (DASHBOARD) - Solo Admin
 // Admin: Top Lectores (VistaTopLectores)
-router.get('/reports/top-readers', isAdmin, (req, res) => reportsCtrl.getTopReaders(req, res));
+// 1. Top Lectores (Admin y Biblio)
+router.get('/reports/top-readers', isStaff, (req, res) => reportsCtrl.getTopReaders(req, res));
 
-// Admin: Estadística por Categoría (VistaConteoPorCategoria)
-router.get('/reports/categories', isAdmin, (req, res) => reportsCtrl.getCategoryStats(req, res));
+// 2. Estadística por Categoría (Admin y Biblio)
+router.get('/reports/categories', isStaff, (req, res) => reportsCtrl.getCategoryStats(req, res));
 
-// Admin: Autores Destacados (sp_ObtenerAutoresTop con parámetro ?min=X)
-router.get('/reports/top-authors', isAdmin, (req, res) => reportsCtrl.getTopAuthors(req, res));
+// 3. Autores Destacados (Admin y Biblio)
+router.get('/reports/top-authors', isStaff, (req, res) => reportsCtrl.getTopAuthors(req, res));
 
-router.get('/reports/active-borrowers', isAdmin, (req, res) => reportsCtrl.getActiveBorrowers(req, res));
-
-
+// 4. Prestatarios Activos (Admin y Biblio)
+router.get('/reports/active-borrowers', isStaff, (req, res) => reportsCtrl.getActiveBorrowers(req, res));
 export default router;
