@@ -11,7 +11,7 @@ const usersController = new UsersController();
 
 // 1. OBTENER TODOS / BUSCAR POR NOMBRE (GET /users o GET /users?nombre=...)
 // Restringido a Admin para ver la lista completa.
-router.get('/', isAdmin, usersController.getAll.bind(usersController));
+router.get('/', isStaff, usersController.getAll.bind(usersController));
 
 // 2. OBTENER POR ID (GET /users/:id)
 // Restringido a Staff/Admin para ver detalles de cualquier usuario.
