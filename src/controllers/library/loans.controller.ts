@@ -1,3 +1,4 @@
+// loans.controller.ts
 import { Request, Response } from 'express';
 import { LoansService } from '@services/library/loans.service';
 import { LoanTransactionDTO } from '@interfaces/loans/loan.interface';
@@ -9,6 +10,7 @@ export class LoansController {
     async createLoan(req: Request, res: Response): Promise<void> {
         const data = req.body as LoanTransactionDTO;
 
+        // Validación básica de entrada
         if (!data.UsuarioID || !data.LibroID) {
             res.status(400).json({ message: 'Faltan UsuarioID y/o LibroID para registrar el préstamo.' });
             return;
@@ -17,15 +19,18 @@ export class LoansController {
         try {
             await this.service.createLoan(data);
             res.status(201).json({ message: 'Préstamo registrado con éxito.' });
-        } catch (error: any) {
-            console.error('Error al registrar préstamo:', error.message);
-            const isStockError = error.message.includes('stock');
 
-            res.status(isStockError ? 400 : 500).json({
-                message: isStockError
-                    ? 'Préstamo fallido: No hay stock disponible o el ID del libro es inválido.'
-                    : 'Error interno del servidor al procesar el préstamo.'
-            });
+        } catch (error: any) {
+            // ⚠️ CAMBIO CRÍTICO AQUÍ
+            // Si el error viene del Repo (AppError), usamos su statusCode (ej. 409) y su mensaje.
+            // Si es un error desconocido, usamos 500.
+
+            const statusCode = error.statusCode || 500;
+            const message = error.message || 'Error interno del servidor al procesar el préstamo.';
+
+            console.error(`Error en createLoan (${statusCode}):`, message);
+
+            res.status(statusCode).json({ message });
         }
     }
 
@@ -36,14 +41,14 @@ export class LoansController {
             res.status(200).json(loans);
         } catch (error: any) {
             console.error('Error fetching active loans:', error);
-            res.status(500).json({ message: 'Error al consultar préstamos activos.' });
+            const statusCode = error.statusCode || 500;
+            res.status(statusCode).json({ message: error.message || 'Error al consultar préstamos activos.' });
         }
     }
 
     // 3. GET /api/library/loans/my-history (Historial Lector)
-    // Se elimina la primera definición duplicada. Mantenemos la lógica de seguridad.
     async getMyHistory(req: Request, res: Response): Promise<void> {
-        // 🔹 Usar userAuth que puso el middleware
+        // Mantenemos tu lógica de userAuth intacta
         const usuarioId = (req as any).body.userAuth?.UsuarioID;
 
         if (!usuarioId) {
@@ -56,7 +61,37 @@ export class LoansController {
             res.status(200).json(loans);
         } catch (error: any) {
             console.error('Error al obtener historial:', error);
-            res.status(500).json({ message: 'Error al obtener historial personal.' });
+            const statusCode = error.statusCode || 500;
+            res.status(statusCode).json({ message: error.message || 'Error al obtener historial personal.' });
+        }
+    }
+
+    // 4. Devolución por ID de Préstamo
+    async returnByPrestamoId(req: Request, res: Response): Promise<void> {
+        const prestamoId = Number(req.params.prestamoId);
+
+        try {
+            await this.service.returnLoanByPrestamoId(prestamoId);
+            res.status(200).json({ message: "Libro devuelto correctamente." });
+        } catch (error: any) {
+            // Estandarizamos para usar 'message' en lugar de 'error' para que el frontend no se confunda
+            const statusCode = error.statusCode || 500;
+            const message = error.message || 'Error desconocido al devolver.';
+            res.status(statusCode).json({ message });
+        }
+    }
+
+    // 5. Devolución por Usuario y Libro
+    async returnByUsuarioLibro(req: Request, res: Response): Promise<void> {
+        const { UsuarioID, LibroID }: { UsuarioID: number; LibroID: number } = req.body;
+
+        try {
+            await this.service.returnLoanByUsuarioLibro(UsuarioID, LibroID);
+            res.status(200).json({ message: "Libro devuelto correctamente." });
+        } catch (error: any) {
+            const statusCode = error.statusCode || 500;
+            const message = error.message || 'Error desconocido al devolver.';
+            res.status(statusCode).json({ message });
         }
     }
 }

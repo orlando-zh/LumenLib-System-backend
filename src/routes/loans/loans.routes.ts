@@ -14,6 +14,11 @@ router.get('/active', isAuthenticated, isStaff, (req, res) => loansController.ge
 // 3. Historial Personal (GET /my-history) - Acceso: Autenticado
 router.get('/my-history', isAuthenticated, (req, res) => loansController.getMyHistory(req, res));
 
+// 4. Devolver libro por PrestamoID (PUT /api/library/loans/return/:prestamoId)
+router.put('/return/:prestamoId', isAuthenticated, isStaff, (req , res ) => loansController.returnByPrestamoId(req, res));
+
+// 5. Devolver libro por UsuarioID + LibroID (PUT /api/library/loans/return)
+router.put('/return', isAuthenticated, isStaff, (req, res ) => loansController.returnByUsuarioLibro(req, res));
 
 
 
