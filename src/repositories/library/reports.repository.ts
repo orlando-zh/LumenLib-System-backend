@@ -20,11 +20,13 @@ export class ReportsRepository {
     }
 
     // 3. SP Dinámico: Autores Top (HAVING)
-    async getTopAuthors(minBooks: number): Promise<AutorTop[]> {
+    async getTopAuthors(minBooks: number, top = 6): Promise<AutorTop[]> {
         const pool = await dbPool;
         const result = await pool.request()
             .input('CantidadMinima', sql.Int, minBooks)
+            .input('Top', sql.Int, top)
             .execute('sp_ObtenerAutoresTop');
+
         return result.recordset;
     }
 

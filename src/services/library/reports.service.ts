@@ -1,25 +1,25 @@
 import { ReportsRepository } from '@repositories/library/reports.repository';
-// ⬅️ Importamos las interfaces que definen el contrato de datos
+import { DASHBOARD_RULES } from '@constants/dashboard.rules';
 import { TopLector, CategoriaStat, AutorTop } from '@interfaces/library/library.interface';
 
 export class ReportsService {
     private repository = new ReportsRepository();
 
     async getTopReaders(): Promise<TopLector[]> {
-        return await this.repository.getTopReaders();
+        return this.repository.getTopReaders();
     }
 
     async getCategoryStats(): Promise<CategoriaStat[]> {
-        return await this.repository.getCategoryStats();
+        return this.repository.getCategoryStats();
     }
 
-    async getTopAuthors(min: number): Promise<AutorTop[]> {
-        const safeMin = min < 1 ? 1 : min;
-        return await this.repository.getTopAuthors(safeMin);
+    async getTopAuthors(): Promise<AutorTop[]> {
+        const { MIN_BOOKS, LIMIT } = DASHBOARD_RULES.TOP_AUTHORS;
+
+        return this.repository.getTopAuthors(MIN_BOOKS, LIMIT);
     }
 
     async getActiveBorrowers() {
-        return await this.repository.getActiveBorrowers();
+        return this.repository.getActiveBorrowers();
     }
 }
-
