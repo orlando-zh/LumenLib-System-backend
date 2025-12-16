@@ -22,7 +22,8 @@
       "@services/*": ["services/*"],
       "@repositories/*": ["repositories/*"],
       "@middlewares/*": ["middlewares/*"],
-      "@config/*": ["config/*"]
+      "@config/*": ["config/*"],
+      "@constants/*": ["constants/*"]
     }
   },
   "include": ["src"],
